@@ -45,15 +45,15 @@ void Camera::Init(u16 r4, u16 r5, u16 r6, u16 r7, u16 r8, u16 r9) {
     rCamData.VEC3_0x98.z = 0.0f;
 
     rCamData.FLOAT_0xA4 = 0.0f;
-    rCamData.INT_0xA8 = 0;
-    rCamData.FLOAT_0xAC = 60.0f;
-    rCamData.FLOAT_0xB0 = (4.0f / 3.0f);
-    rCamData.FLOAT_0xB4 = 0.1f;
-    rCamData.FLOAT_0xB8 = 1000.f;
-    rCamData.FLOAT_0xBC = 0.0f;
-    rCamData.FLOAT_0xC0 = (float)r9;
-    rCamData.FLOAT_0xC4 = 0.0f;
-    rCamData.FLOAT_0xC8 = (float)r8;
+    rCamData.mIsOrtho = 0;
+    rCamData.mFovY = 60.0f;
+    rCamData.mAspectRatio = (4.0f / 3.0f);
+    rCamData.mNearPlane = 0.1f;
+    rCamData.mFarPlane = 1000.f;
+    rCamData.mTop = 0.0f;
+    rCamData.mBottom = (float)r9;
+    rCamData.mLeft = 0.0f;
+    rCamData.mRight = (float)r8;
     rCamData.FLOAT_0xCC = 0.5f;
     rCamData.FLOAT_0xD0 = 0.5f;
     rCamData.FLOAT_0xD4 = 0.5f;
@@ -153,6 +153,38 @@ void Camera::SetCameraMtxDirectly(const math::MTX34& rMtx) {
     PSMTXCopy(rMtx.mtx, rCamData.mCamMtx.mtx);
     rCamData.mFlags |= 0x8;
   }
+}
+
+void Camera::SetPerspective(f32 fovY, f32 aspect, f32 n, f32 f) {
+  CameraData& rCamData = mCamData.ref();
+  if (!mCamData.IsValid())
+    return;
+
+  rCamData.mIsOrtho = 0;
+  rCamData.mFovY = fovY;
+  rCamData.mAspectRatio = aspect;
+  rCamData.mNearPlane = n;
+  rCamData.mFarPlane = f;
+  rCamData.mFlags &= ~0xf0;
+  rCamData.mFlags |= 0x20;
+}
+
+void Camera::SetOrtho(f32 a1, f32 a2, f32 a3, f32 a4, f32 n, f32 f) {
+  CameraData& rCamData = mCamData.ref();
+  if (!mCamData.IsValid())
+    return;
+
+  rCamData.mIsOrtho = 1;
+
+  rCamData.mTop = a1;
+  rCamData.mBottom = a2;
+  rCamData.mLeft = a3;
+  rCamData.mRight = a4;
+  rCamData.mNearPlane = n;
+  rCamData.mFarPlane = f;
+
+  rCamData.mFlags &= ~0xf0;
+  rCamData.mFlags |= 0x40;
 }
 
 } // namespace g3d

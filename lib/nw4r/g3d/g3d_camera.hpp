@@ -22,15 +22,15 @@ struct CameraData {
   math::VEC3 VEC3_0x8C;
   math::VEC3 VEC3_0x98;
   f32 FLOAT_0xA4;
-  u32 INT_0xA8;
-  f32 FLOAT_0xAC;
-  f32 FLOAT_0xB0;
-  f32 FLOAT_0xB4;
-  f32 FLOAT_0xB8;
-  f32 FLOAT_0xBC;
-  f32 FLOAT_0xC0;
-  f32 FLOAT_0xC4;
-  f32 FLOAT_0xC8;
+  u32 mIsOrtho;
+  f32 mFovY;
+  f32 mAspectRatio;
+  f32 mNearPlane;
+  f32 mFarPlane;
+  f32 mTop;
+  f32 mBottom;
+  f32 mLeft;
+  f32 mRight;
   f32 FLOAT_0xCC;
   f32 FLOAT_0xD0;
   f32 FLOAT_0xD4;
@@ -66,19 +66,18 @@ struct Camera {
     CameraData& rCamData = mCamData.ref();
 
     if (rCamData.mFlags & 0x40) {
-      C_MTXOrtho(rCamData.mProjMtx, rCamData.FLOAT_0xBC, rCamData.FLOAT_0xC0,
-                 rCamData.FLOAT_0xC4, rCamData.FLOAT_0xC8, rCamData.FLOAT_0xB4,
-                 rCamData.FLOAT_0xB8);
+      C_MTXOrtho(rCamData.mProjMtx, rCamData.mTop, rCamData.mBottom,
+                 rCamData.mLeft, rCamData.mRight, rCamData.mNearPlane,
+                 rCamData.mFarPlane);
     } else {
       if (rCamData.mFlags & 0x10) {
-        C_MTXFrustum(rCamData.mProjMtx, rCamData.FLOAT_0xBC,
-                     rCamData.FLOAT_0xC0, rCamData.FLOAT_0xC4,
-                     rCamData.FLOAT_0xC8, rCamData.FLOAT_0xB4,
-                     rCamData.FLOAT_0xB8);
+        C_MTXFrustum(rCamData.mProjMtx, rCamData.mTop, rCamData.mBottom,
+                     rCamData.mLeft, rCamData.mRight, rCamData.mNearPlane,
+                     rCamData.mFarPlane);
       } else {
-        C_MTXPerspective(rCamData.mProjMtx, rCamData.FLOAT_0xAC,
-                         rCamData.FLOAT_0xB0, rCamData.FLOAT_0xB4,
-                         rCamData.FLOAT_0xB8);
+        C_MTXPerspective(rCamData.mProjMtx, rCamData.mFovY,
+                         rCamData.mAspectRatio, rCamData.mNearPlane,
+                         rCamData.mFarPlane);
       }
     }
 
