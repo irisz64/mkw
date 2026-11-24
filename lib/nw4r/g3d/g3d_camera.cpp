@@ -22,7 +22,8 @@ void Camera::Init() {
        rRenderMode.xfb_height, rRenderMode.vi_width, rRenderMode.vi_height);
 }
 
-void Camera::Init(u16 r4, u16 r5, u16 r6, u16 r7, u16 r8, u16 r9) {
+void Camera::Init(u16 scissorWidth, u16 scissorHeight, u16 r6, u16 r7, u16 r8,
+                  u16 r9) {
   CameraData& rCamData = mCamData.ref();
 
   if (mCamData.IsValid()) {
@@ -64,12 +65,12 @@ void Camera::Init(u16 r4, u16 r5, u16 r6, u16 r7, u16 r8, u16 r9) {
     rCamData.FLOAT_0xE8 = (float)r7;
     rCamData.FLOAT_0xEC = 0.0;
     rCamData.FLOAT_0xF0 = 1.0f;
-    rCamData.INT_0xF4 = 0;
-    rCamData.INT_0xF8 = 0;
-    rCamData.INT_0xFC = r4;
-    rCamData.INT_0x100 = r5;
-    rCamData.INT_0x104 = 0;
-    rCamData.INT_0x108 = 0;
+    rCamData.mScissorX = 0;
+    rCamData.mScissorY = 0;
+    rCamData.mScissorWidth = scissorWidth;
+    rCamData.mScissorHeight = scissorHeight;
+    rCamData.mScissorBoxOffsX = 0;
+    rCamData.mScissorBoxOffsY = 0;
   }
 }
 
@@ -185,6 +186,26 @@ void Camera::SetOrtho(f32 a1, f32 a2, f32 a3, f32 a4, f32 n, f32 f) {
 
   rCamData.mFlags &= ~0xf0;
   rCamData.mFlags |= 0x40;
+}
+
+void Camera::SetScissor(u32 x, u32 y, u32 w, u32 h) {
+  CameraData& rCamData = mCamData.ref();
+  if (!mCamData.IsValid())
+    return;
+
+  rCamData.mScissorX = x;
+  rCamData.mScissorY = y;
+  rCamData.mScissorWidth = w;
+  rCamData.mScissorHeight = h;
+}
+
+void Camera::SetScissorBoxOffset(s32 x, s32 y) {
+  CameraData& rCamData = mCamData.ref();
+  if (!mCamData.IsValid())
+    return;
+
+  rCamData.mScissorBoxOffsX = x;
+  rCamData.mScissorBoxOffsY = y;
 }
 
 } // namespace g3d

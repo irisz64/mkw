@@ -41,12 +41,12 @@ struct CameraData {
   f32 FLOAT_0xE8;
   f32 FLOAT_0xEC;
   f32 FLOAT_0xF0;
-  u32 INT_0xF4;
-  u32 INT_0xF8;
-  u32 INT_0xFC;
-  u32 INT_0x100;
-  u32 INT_0x104;
-  u32 INT_0x108;
+  u32 mScissorX;
+  u32 mScissorY;
+  u32 mScissorWidth;
+  u32 mScissorHeight;
+  u32 mScissorBoxOffsX;
+  u32 mScissorBoxOffsY;
 };
 
 struct Camera {
