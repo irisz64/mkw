@@ -22,8 +22,8 @@ void Camera::Init() {
        rRenderMode.xfb_height, rRenderMode.vi_width, rRenderMode.vi_height);
 }
 
-void Camera::Init(u16 scissorWidth, u16 scissorHeight, u16 r6, u16 r7, u16 r8,
-                  u16 r9) {
+void Camera::Init(u16 scissorWidth, u16 scissorHeight, u16 viewportW,
+                  u16 viewportH, u16 top, u16 bottom) {
   CameraData& rCamData = mCamData.ref();
 
   if (mCamData.IsValid()) {
@@ -52,23 +52,23 @@ void Camera::Init(u16 scissorWidth, u16 scissorHeight, u16 r6, u16 r7, u16 r8,
     rCamData.mNearPlane = 0.1f;
     rCamData.mFarPlane = 1000.f;
     rCamData.mTop = 0.0f;
-    rCamData.mBottom = (float)r9;
+    rCamData.mBottom = (float)bottom;
     rCamData.mLeft = 0.0f;
-    rCamData.mRight = (float)r8;
+    rCamData.mRight = (float)top;
     rCamData.FLOAT_0xCC = 0.5f;
     rCamData.FLOAT_0xD0 = 0.5f;
     rCamData.FLOAT_0xD4 = 0.5f;
     rCamData.FLOAT_0xD8 = 0.5f;
-    rCamData.FLOAT_0xDC = 0.0f;
-    rCamData.FLOAT_0xE0 = 0.0f;
-    rCamData.FLOAT_0xE4 = (float)r6;
-    rCamData.FLOAT_0xE8 = (float)r7;
-    rCamData.FLOAT_0xEC = 0.0;
-    rCamData.FLOAT_0xF0 = 1.0f;
+    rCamData.mViewportX = 0.0f;
+    rCamData.mViewportY = 0.0f;
+    rCamData.mViewportW = (float)viewportW;
+    rCamData.mViewportH = (float)viewportH;
+    rCamData.mViewportZStart = 0.0;
+    rCamData.mViewportZEnd = 1.0f;
     rCamData.mScissorX = 0;
     rCamData.mScissorY = 0;
-    rCamData.mScissorWidth = scissorWidth;
-    rCamData.mScissorHeight = scissorHeight;
+    rCamData.mScissorW = scissorWidth;
+    rCamData.mScissorH = scissorHeight;
     rCamData.mScissorBoxOffsX = 0;
     rCamData.mScissorBoxOffsY = 0;
   }
@@ -170,19 +170,20 @@ void Camera::SetPerspective(f32 fovY, f32 aspect, f32 n, f32 f) {
   rCamData.mFlags |= 0x20;
 }
 
-void Camera::SetOrtho(f32 a1, f32 a2, f32 a3, f32 a4, f32 n, f32 f) {
+void Camera::SetOrtho(f32 top, f32 bottom, f32 left, f32 right, f32 nearPlane,
+                      f32 farPlane) {
   CameraData& rCamData = mCamData.ref();
   if (!mCamData.IsValid())
     return;
 
   rCamData.mIsOrtho = 1;
 
-  rCamData.mTop = a1;
-  rCamData.mBottom = a2;
-  rCamData.mLeft = a3;
-  rCamData.mRight = a4;
-  rCamData.mNearPlane = n;
-  rCamData.mFarPlane = f;
+  rCamData.mTop = top;
+  rCamData.mBottom = bottom;
+  rCamData.mLeft = left;
+  rCamData.mRight = right;
+  rCamData.mNearPlane = nearPlane;
+  rCamData.mFarPlane = farPlane;
 
   rCamData.mFlags &= ~0xf0;
   rCamData.mFlags |= 0x40;
@@ -195,8 +196,8 @@ void Camera::SetScissor(u32 x, u32 y, u32 w, u32 h) {
 
   rCamData.mScissorX = x;
   rCamData.mScissorY = y;
-  rCamData.mScissorWidth = w;
-  rCamData.mScissorHeight = h;
+  rCamData.mScissorW = w;
+  rCamData.mScissorH = h;
 }
 
 void Camera::SetScissorBoxOffset(s32 x, s32 y) {
@@ -208,5 +209,106 @@ void Camera::SetScissorBoxOffset(s32 x, s32 y) {
   rCamData.mScissorBoxOffsY = y;
 }
 
+void Camera::SetProjectionMtxDirectly(const math::MTX44* rMtx) {
+  if (!rMtx)
+    return;
+
+  CameraData& rCamData = mCamData.ref();
+
+  if (!mCamData.IsValid())
+    return;
+
+  math::MTX44Copy(&rCamData.mProjMtx, (math::MTX44*)rMtx);
+  rCamData.mFlags |= 0x80;
+}
+
+void Camera::SetViewport(f32 viewportX, f32 viewportY, f32 viewportW,
+                         f32 viewportH) {
+  CameraData& rCamData1 = mCamData.ref();
+  if (!mCamData.IsValid())
+    return;
+
+  rCamData1.mViewportX = viewportX;
+  rCamData1.mViewportY = viewportY;
+  rCamData1.mViewportW = viewportW;
+  rCamData1.mViewportH = viewportH;
+
+  CameraData& rCamData2 = mCamData.ref();
+  if (!mCamData.IsValid())
+    return;
+
+  rCamData2.mScissorX = viewportX;
+  rCamData2.mScissorY = viewportY;
+  rCamData2.mScissorW = viewportW;
+  rCamData2.mScissorH = viewportH;
+}
+
+void Camera::SetViewportZRange(f32 viewportZStart, f32 viewportZEnd) {
+  CameraData& rCamData = mCamData.ref();
+  if (!mCamData.IsValid())
+    return;
+
+  rCamData.mViewportZStart = viewportZStart;
+  rCamData.mViewportZEnd = viewportZEnd;
+}
+
+void Camera::GetViewport(f32* viewportX, f32* viewportY, f32* viewportW,
+                         f32* viewportH, f32* viewportZStart,
+                         f32* viewportZEnd) const {
+  CameraData& rCamData = mCamData.ref();
+  if (!mCamData.IsValid())
+    return;
+
+  if (viewportX)
+    *viewportX = rCamData.mViewportX;
+
+  if (viewportY)
+    *viewportY = rCamData.mViewportY;
+
+  if (viewportW)
+    *viewportW = rCamData.mViewportW;
+
+  if (viewportH)
+    *viewportH = rCamData.mViewportH;
+
+  if (viewportZStart)
+    *viewportZStart = rCamData.mViewportZStart;
+
+  if (!viewportZEnd)
+    return;
+
+  *viewportZEnd = rCamData.mViewportZEnd;
+}
+
+void Camera::GetCameraMtx(math::MTX34* dest) const {
+  if (!dest)
+    return;
+
+  CameraData& rCamData = mCamData.ref();
+  if (!mCamData.IsValid())
+    return;
+  
+  if ((rCamData.mFlags & 8) == 0) {
+    UpdateCameraMtx();
+  }
+
+  PSMTXCopy(rCamData.mCamMtx.mtx, dest->mtx);
+}
+
+void Camera::GetProjectionMtx(math::MTX44* dest) const {
+  if (!dest)
+    return;
+
+  CameraData& rCamData = mCamData.ref();
+  if (!mCamData.IsValid())
+    return;
+
+  if((rCamData.mFlags & 0x80) == 0) {
+    UpdateProjectionMtx();
+    rCamData.mFlags |= 0x80;
+  }
+
+  math::MTX44Copy(dest, &rCamData.mProjMtx);
+}
 } // namespace g3d
 } // namespace nw4r
